@@ -1,0 +1,18 @@
+#!/bin/bash
+
+#SBATCH --job-name=gotu
+#SBATCH --chdir=/work/magnusdo
+#SBATCH --output=/work/%u/%x-%A-%a.out
+#SBATCH --error=/work/%u/%x-%A-%a.err
+#SBATCH --time 24:00:00
+#SBATCH --mem-per-cpu=12G
+#SBATCH --cpus-per-task 8
+
+module load Anaconda3
+source /software/easybuild-broadwell/software/Anaconda2/2019.10/etc/profile.d/conda.sh
+conda activate base
+conda activate /work/magnusdo/urban/mudoger_gotu/mudoger/envs/mudoger_env/dependencies/conda/envs/otupick_env/
+
+export MUDOGER_DEPENDENCIES_ENVS_PATH="/work/magnusdo/urban/mudoger_gotu/mudoger/envs/mudoger_env/dependencies/conda/envs"
+
+/work/magnusdo/urban/mudoger_gotu/gOTUpick.sh --bb-input /work/magnusdo/urban/mudoger_gotu/data/bbtools.tsv --checkm-input /work/magnusdo/urban/mudoger_gotu/data/checkm.tsv --gtdb-input /work/magnusdo/urban/mudoger_gotu/data/gtdbtk.tsv -m /work/magnusdo/urban/mags -o /work/magnusdo/urban/mudoger_gotu --fastANI-thread 8
