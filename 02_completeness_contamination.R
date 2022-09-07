@@ -11,7 +11,7 @@ library(dplyr)
 
 # load checkm data
 checkm <- fread("data\\checkm.tsv", sep = "\t")
-gotu.final <- fread("data\\gotu_final.tsv", sep = "\t")
+gotu.final <- fread("data\\final_groups_qual.tsv", sep = "\t")
 gotu.final.95 <- gotu.final[gotu.final$ani == 95,]
 
 # create plot of mag quality
@@ -74,7 +74,7 @@ gotu.checkm <- checkm[which(checkm$mag %in% gotu.final.95$bin),]
 gotu.quality <- as.data.frame(gotu.checkm %>%
   group_by(quality) %>%
   summarize(count = n_distinct(mag)) %>% 
-  mutate(percent = prop.table(count) * 100))
+  mutate(percent = round(prop.table(count) * 100, 1)))
 
 final.clusters.scatter <- ggplot(gotu.checkm, aes(x = Contamination, y = Completeness, color = quality.score)) +
   geom_point(size = 3, show.legend = FALSE) +

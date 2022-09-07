@@ -1,4 +1,5 @@
-# This script plots a histogram of the number of ARGs per gOTU clustered MAGs
+# This script plots a histogram of the number of ARGs per gOTU clustered MAGs 
+# with percent identity over 50
 
 # packages
 library(data.table)
@@ -14,8 +15,8 @@ gotu.final <- gotu.final[which(gotu.final$ani == 95), ]
 # load ARG data
 deeparg <- fread("data\\deeparg.tsv", sep = "\t")
 
-# only consider ARGs with 35% or higher percent identity
-deeparg <- deeparg[deeparg$identity >= 35, ]
+# only consider ARGs with 50% or higher percent identity
+deeparg <- deeparg[deeparg$identity >= 50, ]
 
 # count number of unique args per mag
 mag.arg <- merge(gotu.final[, c("bin", "new_group")], deeparg[, c("mag", "arg")], by.x = "bin", by.y = "mag", all.x = T)
@@ -24,7 +25,7 @@ mag.arg.cnt <- as.data.frame(
 )
 
 # create histogram with number of args per mag
-pdf(file = paste0("figures\\arg_count_histogram_gOTUs.pdf"),
+pdf(file = paste0("figures\\identity50_arg_count_histogram_gOTUs.pdf"),
     height = 8.27, width = 11.69)
 
 ggplot(mag.arg.cnt, aes(x = unique.args)) + 
@@ -34,7 +35,7 @@ ggplot(mag.arg.cnt, aes(x = unique.args)) +
     panel.grid.major = element_blank(), 
     panel.grid.minor = element_blank(),
     text = element_text(size = 20)
-    ) +
+  ) +
   labs(x = "Number of ARGs per MAG", y = "Number of MAGs")
 
 dev.off()
@@ -42,3 +43,5 @@ dev.off()
 # average number of ARGs per gOTU MAGs
 mean(mag.arg.cnt$unique.args)
 sd(mag.arg.cnt$unique.args)
+
+

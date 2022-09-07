@@ -1,4 +1,5 @@
 # This script plots a heatmap with the ARG class prevalence per taxonomic phylum
+# with percent identity over 50
 
 # packages
 library(data.table)
@@ -16,19 +17,17 @@ gotu.final <- gotu.final[which(gotu.final$ani == 95), ]
 
 # load ARG data
 deeparg <- fread("data\\deeparg.tsv", sep = "\t")
-# only consider ARGs with 35% or higher percent identity
-deeparg <- deeparg[deeparg$identity >= 35, ]
+# only consider ARGs with 50% or higher percent identity
+deeparg <- deeparg[deeparg$identity >= 50, ]
 
 # load best bins to assign taxonomy to clusters
 gotu.best <- fread("data\\bestbins_metadata.tsv", sep = "\t")
-gotu.best <- gotu.best[gotu.best$ani == 95, ]
 
 # make sure taxonomy is consistent per cluster
 taxonomy <- merge(gotu.final[, c("bin", "new_group")], gotu.best[, c("new_group", "taxonomy")], by = "new_group", all.x = T)
 
 # extract phylum
 taxonomy$phylum <- str_extract(taxonomy$taxonomy, "(?<=p__).*?(?=;)")
-# remove underscore
 taxonomy$phylum <- gsub("_([[:alpha:]]{1,2})", "", taxonomy$phylum)
 
 # put all data together in a table
@@ -85,12 +84,11 @@ callback = function(hc, mat){
 }
 
 # plot the heatmap
-pdf(file = paste0("figures\\prevalence_argclass_phylum.pdf"),
+pdf(file = paste0("figures\\identity50_prevalence_argclass_phylum.pdf"),
     height = 11.69, width = 8.27)
 
 # only use if taxon has 5 gOTUs or more
 ac.tx.red <- ac.tx[, which(colnames(ac.tx) %in% cnt.taxa$phylum[cnt.taxa$unique_gotus >= 5])]
-
 # calculate weighted average prevalence (WAP)
 wap <- rowSums(ac.tx.red %*% diag(cnt.taxa$unique_gotus[match(colnames(ac.tx.red), cnt.taxa$phylum)])/nrow(best.bins))
 

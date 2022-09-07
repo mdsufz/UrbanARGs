@@ -5,10 +5,12 @@ library(data.table)
 library(dplyr)
 library(stringr)
 library(aricode) # NMI
+library(ggplot2)
+library(gridExtra)
 
 # load data
 # load gOTU data, only want to analyze the MAGs that got clustered
-gotu.final <- fread("data\\gotu_final.tsv", sep = "\t")
+gotu.final <- fread("data\\final_groups_qual.tsv", sep = "\t")
 # only ANI 95
 gotu.final <- gotu.final[which(gotu.final$ani == 95), ]
 
@@ -18,7 +20,7 @@ deeparg <- fread("data\\deeparg.tsv", sep = "\t")
 deeparg <- deeparg[deeparg$identity >= 35, ]
 
 # load best bins
-gotu.best <- fread("data\\gotu_best.tsv", sep = "\t")
+gotu.best <- fread("data\\bestbins_metadata.tsv", sep = "\t")
 gotu.best <- gotu.best[which(gotu.best$ani == 95), ]
 
 # make sure taxonomy is consistent per cluster
@@ -35,15 +37,6 @@ taxonomy$family <- str_extract(taxonomy$taxonomy, "(?<=f__).*?(?=;)")
 taxonomy$genus <- str_extract(taxonomy$taxonomy, "(?<=g__).*?(?=;)")
 taxonomy$species <- str_extract(taxonomy$taxonomy, "(?<=s__).*")
 
-# remove alphabetic suffixes introduced by GTDB
-# "_A" etc. (e.g. "Firmicutes_A" to "Firmicutes"), sometimes 2 letters, e.g. "_AB"
-taxonomy$phylum <- gsub("_([[:alpha:]]{1,2})", "", taxonomy$phylum)
-taxonomy$class <- gsub("_([[:alpha:]]{1,2})", "", taxonomy$class)
-taxonomy$order <- gsub("_([[:alpha:]]{1,2})", "", taxonomy$order)
-taxonomy$family <- gsub("_([[:alpha:]]{1,2})", "", taxonomy$family)
-taxonomy$genus <- gsub("_([[:alpha:]]{1,2})", "", taxonomy$genus)
-taxonomy$species <- gsub("_([[:alpha:]]{1,2})", "", taxonomy$species)
-
 # replace empty with NA
 taxonomy$phylum[taxonomy$phylum == ""] <- NA
 taxonomy$class[taxonomy$class == ""] <- NA
@@ -58,7 +51,6 @@ arg.classes <- unique(deeparg$predicted.arg.class)
 
 # set up data frame to collect results
 nmi.results <- rbind(
-  setNames(do.call("rbind", replicate(length(arg.classes), as.data.frame(unique(cbind("domain", taxonomy$domain))), simplify = F)), c("tax.level", "taxon")),
   setNames(do.call("rbind", replicate(length(arg.classes), as.data.frame(unique(cbind("phylum", taxonomy$phylum))), simplify = F)), c("tax.level", "taxon")),
   setNames(do.call("rbind", replicate(length(arg.classes), as.data.frame(unique(cbind("class", taxonomy$class))), simplify = F)), c("tax.level", "taxon")),
   setNames(do.call("rbind", replicate(length(arg.classes), as.data.frame(unique(cbind("order", taxonomy$order))), simplify = F)), c("tax.level", "taxon")),
@@ -68,7 +60,6 @@ nmi.results <- rbind(
 
 # make sure that there are unique combinations of taxons and arg classes
 nmi.results$arg.class <- c(
-  rep(arg.classes, each = length(unique(taxonomy$domain))),
   rep(arg.classes, each = length(unique(taxonomy$phylum))),
   rep(arg.classes, each = length(unique(taxonomy$class))),
   rep(arg.classes, each = length(unique(taxonomy$order))),
@@ -111,6 +102,7 @@ fwrite(nmi.results, "tables\\nmi_results.csv", sep = ",", row.names = F)
 fwrite(nmi.report, "tables\\nmi_significant.csv", sep = ",", row.names = F)
 
 # plot the significant NMI ARGs
+p <- list()
 for (i in 1:nrow(nmi.report)) {
   # extract data
   extr.data <- myData[which((myData[which(colnames(myData) == nmi.report$tax.level[i])] ==  nmi.report$taxon[i]) & 
@@ -125,19 +117,20 @@ for (i in 1:nrow(nmi.report)) {
   )
   
   # plot
-  pdf(file = paste0("figures\\nmi_sign_", nmi.report$taxon[i], "_", nmi.report$arg.class[i], ".pdf"),
-      height = 8.27, width = 11.69)
-  print(ggplot(data.plot, aes(x = taxons, y = n, fill = arg)) +
-    geom_col(position="stack") +
-    theme_bw() + 
-    theme(text = element_text(size = 18),
-          panel.grid.major = element_blank(), 
-          panel.grid.minor = element_blank()) +
-    labs(x = colnames(extr.data[which(colnames(extr.data) == nmi.report$tax.level[i]) + 1]), y = "Number of MAGs") +
-    coord_flip() +
-    guides(fill = guide_legend(title = "ARG")))
-  dev.off()
+  #
+    p[[i]] <- ggplot(data.plot, aes(x = taxons, y = n, fill = arg)) +
+      geom_col(position="stack") +
+      theme_bw() + 
+      theme(axis.text = element_text(size = 12),
+        panel.grid.major = element_blank(), 
+            panel.grid.minor = element_blank(),
+            legend.position = "none") +
+      labs(x = NULL, y = "Number of MAGs", title = paste0(nmi.report$taxon[i], ":", nmi.report$arg.class[i])) +
+      coord_flip()
 }
-
+pdf(file = paste0("figures\\nmi_significant.pdf"),
+   height = 16.5, width = 23.5)
+  do.call(grid.arrange, p)
+dev.off()
 
 
