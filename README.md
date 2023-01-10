@@ -1,6 +1,6 @@
 # UrbanARGs
 
-This repository contains all analysis scripts for the manuscript "Metagenome-assembled genomes indicate that antimicrobial resistance genes are highly prevalent among urban bacteria and multidrug and glycopeptide resistances are ubiquitous in most taxa" (submitted to Frontiers in Microbiology on 06.09.2022).
+This repository contains all analysis scripts for the manuscript "Metagenome-assembled genomes indicate that antimicrobial resistance genes are highly prevalent among urban bacteria and multidrug and glycopeptide resistances are ubiquitous in most taxa" (submitted to Frontiers in Microbiology on 06.09.2022, accepted on 02.01.2023).
 
 Authors: Stefanía Magnúsdóttir, Joao Pedro Saraiva, Alexander Bartholomäus, Majid Soheili, Rodolfo Brizola Toscan, Junya Zhang, Ulisses Nunes da Rocha
 
