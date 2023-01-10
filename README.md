@@ -45,3 +45,6 @@ Calculates the prevalence of each ARG class per gOTU species. Used for the phylo
 ## 13_gotu_tree.R
 Prepares the GTDB identifier intput for phyloT to generate the phylogenetic tree. Reads in the tree file and plots the tree with the prevalence heatmap from 
 12_arg_class_prevalence_table.R and the reported non-random taxons from 07_nmi_calculations.R.
+
+## 15_plasmids_risk_virulence.R
+Takes in the PlasFlow and virulence factor alignment data in addition to the DeepARG output to analyze the occurrence of ARGs on plasmids vs. chromosomes and calculate the number of virulence factors per gOTU (species).
